@@ -20,7 +20,7 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
 
   # Getting the LASSO fit
   if(is.null(lassoFit)) {
-    lassoFit <- cv.glmnet(X, y, standardize = FALSE, intercept = FALSE)
+    lassoFit <- glmnet::cv.glmnet(X, y, standardize = FALSE, intercept = FALSE)
   }
 
   if(lambda == "lambda.min") {

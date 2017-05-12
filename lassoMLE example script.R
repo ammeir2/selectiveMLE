@@ -31,7 +31,7 @@ generate.regression.data <- function(n,sqrtSigma,numberNonzero,snr=2,ysig=1) {
 # Parameters ----------------
 n <- 400
 p <- 400
-snrEta <- 0.5
+snr <- 0.5
 numberNonzero <- 4
 rho <- 0.5
 
@@ -39,6 +39,7 @@ rho <- 0.5
 Xsqrtsig <- generate.sqrt.Sigma(p, rho, sigsq = 1)$sqrt
 s <- 0
 while(s < 2 | s > n / 4) {
+  snrEta <- snr
   regData <- generate.regression.data(n, Xsqrtsig, numberNonzero, snr = snr, ysig = 1)
   X <- regData$X[1:n, ]
   X <- apply(X, 2, function(x) (x - mean(x))/sd(x))

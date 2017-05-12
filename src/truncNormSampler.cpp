@@ -27,7 +27,7 @@ double sampleExtreme(double mu, double sd, double threshold) {
   bool reject = true ;
   int iter = 0;
   while(reject & (iter++ < 10000)) {
-    proposal = threshold + R::rexp(alpha) ;
+    proposal = threshold + R::rexp(1 / alpha) ;
     phi = exp(-std::pow(proposal - alpha, 2) / 2) ;
     if(runif(1)[0] < phi) {
       reject = false ;
@@ -529,7 +529,8 @@ void   lassoSampler(const NumericVector initEst,
 
     // OPTIMIZATION ENDS
     if(optimIter % 100 == 0) {
-      Rcpp::Rcout<<optimIter<<" " ;
+      double percent = std::round((optimIter + 1.0) / (sampMat.nrow() + 1.0) * 100) ;
+      Rcpp::Rcout<<percent<<"\% " ;
       for(int i = 0 ; i < samp.length() ; i ++) {
         samp[i] = naive[i] ;
         signs[i] = sign(naive[i]) ;

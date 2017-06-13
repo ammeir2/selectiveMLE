@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // lassoSampler
-void lassoSampler(const NumericVector initEst, const NumericVector initSamp, NumericMatrix oneCov, NumericMatrix XmX, NumericMatrix XmXinv, NumericVector condSigma, double lambda, double ysigsq, NumericVector zeroMean, NumericMatrix sqrtZero, NumericMatrix u0mat, int n, int p, int nsamp, int burnin, NumericVector Xy, NumericMatrix& estimateMat, NumericMatrix& sampMat, int delay, double stepRate, double stepCoef, double gradientBound, int assumeConvergence, NumericVector naive);
-RcppExport SEXP selectiveMLE_lassoSampler(SEXP initEstSEXP, SEXP initSampSEXP, SEXP oneCovSEXP, SEXP XmXSEXP, SEXP XmXinvSEXP, SEXP condSigmaSEXP, SEXP lambdaSEXP, SEXP ysigsqSEXP, SEXP zeroMeanSEXP, SEXP sqrtZeroSEXP, SEXP u0matSEXP, SEXP nSEXP, SEXP pSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP XySEXP, SEXP estimateMatSEXP, SEXP sampMatSEXP, SEXP delaySEXP, SEXP stepRateSEXP, SEXP stepCoefSEXP, SEXP gradientBoundSEXP, SEXP assumeConvergenceSEXP, SEXP naiveSEXP) {
+void lassoSampler(const NumericVector initEst, const NumericVector initSamp, NumericMatrix oneCov, NumericMatrix XmX, NumericMatrix XmXinv, NumericVector condSigma, double lambda, double ysigsq, NumericVector zeroMean, NumericMatrix sqrtZero, NumericMatrix u0mat, int n, int p, int nsamp, int burnin, NumericVector Xy, NumericMatrix& estimateMat, NumericMatrix& sampMat, int delay, double stepRate, double stepCoef, double gradientBound, int assumeConvergence, NumericVector naive, bool methodExact);
+RcppExport SEXP selectiveMLE_lassoSampler(SEXP initEstSEXP, SEXP initSampSEXP, SEXP oneCovSEXP, SEXP XmXSEXP, SEXP XmXinvSEXP, SEXP condSigmaSEXP, SEXP lambdaSEXP, SEXP ysigsqSEXP, SEXP zeroMeanSEXP, SEXP sqrtZeroSEXP, SEXP u0matSEXP, SEXP nSEXP, SEXP pSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP XySEXP, SEXP estimateMatSEXP, SEXP sampMatSEXP, SEXP delaySEXP, SEXP stepRateSEXP, SEXP stepCoefSEXP, SEXP gradientBoundSEXP, SEXP assumeConvergenceSEXP, SEXP naiveSEXP, SEXP methodExactSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericVector >::type initEst(initEstSEXP);
@@ -35,7 +35,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type gradientBound(gradientBoundSEXP);
     Rcpp::traits::input_parameter< int >::type assumeConvergence(assumeConvergenceSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type naive(naiveSEXP);
-    lassoSampler(initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lambda, ysigsq, zeroMean, sqrtZero, u0mat, n, p, nsamp, burnin, Xy, estimateMat, sampMat, delay, stepRate, stepCoef, gradientBound, assumeConvergence, naive);
+    Rcpp::traits::input_parameter< bool >::type methodExact(methodExactSEXP);
+    lassoSampler(initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lambda, ysigsq, zeroMean, sqrtZero, u0mat, n, p, nsamp, burnin, Xy, estimateMat, sampMat, delay, stepRate, stepCoef, gradientBound, assumeConvergence, naive, methodExact);
     return R_NilValue;
+END_RCPP
+}
+// mvtSampler
+NumericVector mvtSampler(NumericVector y, NumericVector mu, IntegerVector selected, NumericMatrix threshold, NumericMatrix precision, int nsamp, int burnin, int trim);
+RcppExport SEXP selectiveMLE_mvtSampler(SEXP ySEXP, SEXP muSEXP, SEXP selectedSEXP, SEXP thresholdSEXP, SEXP precisionSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP trimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type selected(selectedSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type threshold(thresholdSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type precision(precisionSEXP);
+    Rcpp::traits::input_parameter< int >::type nsamp(nsampSEXP);
+    Rcpp::traits::input_parameter< int >::type burnin(burninSEXP);
+    Rcpp::traits::input_parameter< int >::type trim(trimSEXP);
+    rcpp_result_gen = Rcpp::wrap(mvtSampler(y, mu, selected, threshold, precision, nsamp, burnin, trim));
+    return rcpp_result_gen;
 END_RCPP
 }

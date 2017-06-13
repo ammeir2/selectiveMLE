@@ -4,8 +4,18 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
                      delay = 50,
                      assumeConvergence = 850,
                      iterations = 1650,
-                     stepCoef = 0.001, stepRate = 0.85) {
-  # Standartizing variables
+                     stepCoef = 0.001, stepRate = 0.85,
+                     method = c("exact", "selected")) {
+  # Checking method ---------------
+  if(length(method) > 1) {
+    method <- method[1]
+  }
+  if(!(method %in% c("exact", "selected"))) {
+    stop("Method must be either exact or selected!")
+  }
+
+
+  # Standartizing variables ---------------
   lambda <- "lambda.min"
   sdy <- sd(y)
   y <- y/sdy
@@ -20,7 +30,7 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
 
   # Getting the LASSO fit
   if(is.null(lassoFit)) {
-    lassoFit <- glmnet::cv.glmnet(X, y, standardize = FALSE, intercept = FALSE)
+    lassoFit <- cv.glmnet(X, y, standardize = FALSE, intercept = FALSE)
   }
 
   if(lambda == "lambda.min") {
@@ -34,6 +44,10 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
   lassoBeta <- as.vector(coef(lassoFit, s = lambda / n))[-1]
   selected <- lassoBeta != 0
   whichSelected <- which(selected)
+
+  if(all(selected)) {
+    method <- "selected"
+  }
 
   lassoysig <- sd((y - X %*% lassoBeta)) * sqrt((n - 1) / (n - sum(selected)))
   naiveysig <- sd(lm(y ~ X[, selected] - 1)$residuals)
@@ -50,15 +64,31 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
   XmXinv <- solve(XmX)
   hatmat <- XmXinv %*% t(Xm)
   projmat <- Xm %*% hatmat
-  Xminus <- X[, !selected]
-  A0 <- (1 / lambda) * t(Xminus) %*% (diag(n) - projmat)
-  u0mat <- t(Xminus) %*% t(hatmat)
-  A0y <- as.numeric(A0 %*% y)
-
-  zeroCov <- A0 %*% t(A0) * ysig^2
   oneCov <- ysig^2 * solve(XmX)
   precision <- solve(oneCov)
   condSigma <- ysig^2 / diag(XmX)
+
+  if(method == "exact") {
+    Xminus <- X[, !selected]
+    A0 <- (1 / lambda) * t(Xminus) %*% (diag(n) - projmat)
+    u0mat <- t(Xminus) %*% t(hatmat)
+    A0y <- as.numeric(A0 %*% y)
+    zeroCov <- A0 %*% t(A0) * ysig^2
+    singular <- svd(zeroCov)
+    zerorank <- min(n - k, p - k)
+    zeroMean <- rep(0, p - k)
+    sqrtmat <- singular$v %*% (sqrt(singular$d) * t(singular$u))
+  } else {
+    Xminus <- 0
+    A0 <- 0
+    u0mat <- matrix(0)
+    A0y <- as.vector(0)
+    zeroCov <- matrix(0)
+    singular <- 0
+    zerorank <- 0
+    zeroMean <- as.vector(0)
+    sqrtmat <- matrix(0)
+  }
 
   samp <- naiveBeta
   betaSample <- matrix(0, nrow = iterations, ncol = k)
@@ -67,12 +97,7 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
   estimateMat <- matrix(0, nrow = iterations, ncol = k)
   estimate <- naiveBeta
 
-  singular <- svd(zeroCov)
-  sqrtmat <- singular$v %*% (sqrt(singular$d) * t(singular$u))
-
-  zerorank <- min(n - k, p - k)
-  zeroMean <- rep(0, p - k)
-
+  methodExact <- method == "exact"
   lassoBeta <- as.vector(coef(lassoFit, s = lambda / n))[-1][selected]
   lassoSampler(initEst = lassoBeta, initSamp = naiveBeta,  oneCov = oneCov,
                XmX = XmX, XmXinv = XmXinv,
@@ -84,7 +109,7 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
                estimateMat = estimateMat, sampMat = betaSample,
                delay = delay, stepRate = stepRate, stepCoef = stepCoef,
                gradientBound = 0.02, assumeConvergence = assumeConvergence,
-               naive = naiveBeta)
+               naive = naiveBeta, methodExact = methodExact)
 
   conditionalBeta <- estimateMat[nrow(estimateMat), ]
 

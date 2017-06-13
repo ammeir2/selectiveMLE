@@ -4,6 +4,13 @@ using namespace Rcpp;
 # define M_PI           3.14159265358979323846  /* pi */
 const double log2pi = log(2.0 * 3.1415926535897932384);
 
+void printVec(NumericVector x) {
+  for(int i = 0; i < x.length() ; i ++) {
+    Rcpp::Rcout<<x[i]<<" ";
+  }
+  Rcpp::Rcout<<"\n" ;
+}
+
 inline int randWrapper(const int n) { return floor(unif_rand()*n); }
 
 void randomShuffle(IntegerVector a) {
@@ -38,10 +45,14 @@ double sampleExtreme(double mu, double sd, double threshold) {
   return proposal * sign;
 }
 
-
 double sampleUnivTruncNorm(double mu, double sd, double threshold) {
   double u = runif(1)[0] ;
   double phiThreshold, sample ;
+
+  // if(isnan(mu)) {
+  //   Rcpp::Rcout<<"mu is nan \n" ;
+  //   return 0 ;
+  // }
 
   if((std::abs(mu - threshold) / sd) > 3) {
     return sampleExtreme(mu, sd, threshold) ;
@@ -49,6 +60,11 @@ double sampleUnivTruncNorm(double mu, double sd, double threshold) {
 
   phiThreshold = R::pnorm5(threshold, mu, sd, 1, 0) ;
   sample = R::qnorm5(u * phiThreshold, mu, sd, 1, 0) ;
+
+  int tries = 0 ;
+  while(isnan(sample) & tries ++ < 10) {
+    sample =  sampleExtreme(mu, sd, threshold) ;
+  }
 
   return sample ;
 }
@@ -325,7 +341,8 @@ void mhSampler(NumericVector samp, NumericVector oldSamp,
                NumericVector lZero, NumericVector uZero,
                NumericVector newlzero, NumericVector newuzero,
                NumericMatrix &u0mat, NumericVector zeroSamp,
-               int maxiter, IntegerVector order, NumericVector initEst) {
+               int maxiter, IntegerVector order, NumericVector initEst,
+               bool methodExact) {
   int j ;
   double condSD, condMean ;
   double thres, psame, pdiff ;
@@ -358,8 +375,11 @@ void mhSampler(NumericVector samp, NumericVector oldSamp,
 
       // check zero condition
       computeZeroThresholds(u0mat, newsigns, newlzero, newuzero) ;
-      zeroCondition = innerZeroCondition(zeroSamp, newlzero, newuzero) ;
-      if(zeroCondition == 0) {
+      if(methodExact) {
+        zeroCondition = innerZeroCondition(zeroSamp, newlzero, newuzero) ;
+      }
+
+      if(methodExact & (zeroCondition == 0)) {
         newsamp = sampleUnivTruncNorm(-signs[j] * condMean, condSD, - signs[j] * u[j]) ;
         samp[j] = -signs[j] * newsamp ;
         oldSamp[j] = samp[j] ;
@@ -377,8 +397,10 @@ void mhSampler(NumericVector samp, NumericVector oldSamp,
         newsamp *= -signs[j] ;
         samp[j] = newsamp ;
         oldSamp[j] = newsamp ;
-        copyVector(lZero, newlzero) ;
-        copyVector(uZero, newuzero) ;
+        if(methodExact) {
+          copyVector(lZero, newlzero) ;
+          copyVector(uZero, newuzero) ;
+        }
         continue ;
       }
 
@@ -415,8 +437,10 @@ void mhSampler(NumericVector samp, NumericVector oldSamp,
         signs[j] *= -1 ;
         copyVector(oldSamp, samp) ;
         copyVector(u, newuone) ;
-        copyVector(lZero, newlzero) ;
-        copyVector(uZero, newuzero) ;
+        if(methodExact) {
+          copyVector(lZero, newlzero) ;
+          copyVector(uZero, newuzero) ;
+        }
       } else {
         newsigns[j] *= -1 ;
         copyVector(samp, oldSamp) ;
@@ -441,7 +465,7 @@ void   lassoSampler(const NumericVector initEst,
                     NumericMatrix &estimateMat, NumericMatrix &sampMat,
                     int delay, double stepRate, double stepCoef,
                     double gradientBound, int assumeConvergence,
-                    NumericVector naive) {
+                    NumericVector naive, bool methodExact) {
   // Initializing Sampling order
   IntegerVector order = IntegerVector(initEst.length()) ;
   for(int i = 0; i < order.length() ; i++) order[i] = i ;
@@ -459,16 +483,17 @@ void   lassoSampler(const NumericVector initEst,
 
   // Initializing zero sample
   int k = samp.length() ;
-  int zeroRank = std::min(p - k, n - k) ;
-  NumericVector zsamp = NumericVector(zeroRank) ;
-  NumericVector zeroSamp = NumericVector(p - k) ;
-  NumericVector lzero = NumericVector(p - k) ;
-  NumericVector uzero = NumericVector(p - k) ;
-  NumericVector newlzero = NumericVector(p - k) ;
-  NumericVector newuzero = NumericVector(p - k) ;
-  computeZeroThresholds(u0mat, signs, lzero, uzero) ;
-  int zeroBurn = 50;
-  double CHEAT = 0.01 ;
+  NumericVector zsamp, zeroSamp, lzero, uzero, newlzero, newuzero ;
+  if(methodExact) {
+    int zeroRank = std::min(p - k, n - k) ;
+    zsamp = NumericVector(zeroRank) ;
+    zeroSamp = NumericVector(p - k) ;
+    lzero = NumericVector(p - k) ;
+    uzero = NumericVector(p - k) ;
+    newlzero = NumericVector(p - k) ;
+    newuzero = NumericVector(p - k) ;
+    computeZeroThresholds(u0mat, signs, lzero, uzero) ;
+  }
 
   // initializing one sampler
   double currentThreshold ;
@@ -483,9 +508,11 @@ void   lassoSampler(const NumericVector initEst,
     // SAMPLING STARTS
     for(int sampIter = 0 ; sampIter < nsamp ; sampIter++){
       // sampling A0y
-      zeroSampler(zsamp, zeroSamp,
-                  zeroMean, sqrtZero,
-                  lzero, uzero, 5, 40) ;
+      if(methodExact) {
+        zeroSampler(zsamp, zeroSamp,
+                    zeroMean, sqrtZero,
+                    lzero, uzero, 5, 40) ;
+      }
 
       // Sampling Signs
       mhSampler(samp, oldsamp, signs, newsigns,
@@ -494,11 +521,31 @@ void   lassoSampler(const NumericVector initEst,
                 XmXinv, XmX, ysigsq,
                 lzero, uzero, newlzero, newuzero,
                 u0mat, zeroSamp,
-                1, order, initEst) ;
+                1, order, initEst, methodExact) ;
 
       // Sampling regression Coefs
       aOneSampler(samp, signs, uone, estimate, XmX, condSigma, ysigsq, 10, 10) ;
       copyVector(oldsamp, samp) ;
+    }
+
+    // Rcpp::Rcout<<optimIter<<" ";
+    // printVec(samp) ;
+
+    // Checking that Sample is reasonable
+    for(int l = 0 ; l < samp.length() ; l++) {
+      if(std::abs((naive[l] - samp[l]) / std::sqrt(oneCov(l, l))) > 10) {
+        for(int i = 0 ; i < samp.length() ; i ++) {
+          samp[i] = naive[i] ;
+          signs[i] = sign(naive[i]) ;
+        }
+        copyVector(oldsamp, samp) ;
+        copyVector(newsigns, signs) ;
+        computeOneThreshold(signs, lambda, XmXinv, uone) ;
+        if(methodExact) {
+          computeZeroThresholds(u0mat, signs, lzero, uzero) ;
+        }
+        break ;
+      }
     }
 
     // SAMPLING ENDS
@@ -528,15 +575,18 @@ void   lassoSampler(const NumericVector initEst,
     }
 
     // OPTIMIZATION ENDS
-    if(optimIter % 100 == 0) {
-      double percent = std::round((optimIter + 1.0) / (sampMat.nrow() + 1.0) * 100) ;
+    int frac = floor(sampMat.nrow() / 20) ;
+    if((optimIter + 1) % frac == 0) {
+      double percent = round((optimIter + 1.0) / (sampMat.nrow() + 1.0) * 100) ;
       Rcpp::Rcout<<percent<<"\% " ;
       for(int i = 0 ; i < samp.length() ; i ++) {
         samp[i] = naive[i] ;
         signs[i] = sign(naive[i]) ;
-        copyVector(oldsamp, samp) ;
-        copyVector(newsigns, signs) ;
-        computeOneThreshold(signs, lambda, XmXinv, uone) ;
+      }
+      copyVector(oldsamp, samp) ;
+      copyVector(newsigns, signs) ;
+      computeOneThreshold(signs, lambda, XmXinv, uone) ;
+      if(methodExact) {
         computeZeroThresholds(u0mat, signs, lzero, uzero) ;
       }
     }

@@ -1,3 +1,7 @@
+#' @useDynLib selectiveMLE
+#' @importFrom Rcpp sourceCpp
+
+#' @export
 truncNormMLE <- function(y, sigma, threshold,
                          cialpha = 0.05,
                          maxiter = 1000,

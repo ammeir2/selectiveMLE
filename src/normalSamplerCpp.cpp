@@ -17,7 +17,10 @@ NumericVector mvtSampler(NumericVector y,
                          IntegerVector selected,
                          NumericMatrix threshold,
                          NumericMatrix precision,
-                         int nsamp, int burnin, int trim) {
+                         int nsamp, int burnin, int trim,
+                         bool verbose) {
+  int totalIter = burnin + (nsamp - 1) * trim ;
+  int frac = std::round(totalIter / 5) ;
   int p = y.length() ;
   NumericMatrix samples(nsamp, p) ;
   NumericVector samp = clone(y) ;
@@ -44,6 +47,11 @@ NumericVector mvtSampler(NumericVector y,
       }
     }
 
+    if(verbose & ((((i + 1) % frac) == 0) | (i == totalIter - 1))) {
+      int out = (i + 1.0) / (1.0 * totalIter) * 100 ;
+      Rcpp::Rcout<<out<<"% " ;
+    }
+
     if(i >= (burnin - 1) & (i - burnin + 1) % trim == 0) {
       for(int j = 0 ; j < samples.ncol() ; j++) {
         samples(row, j) = samp[j] ;
@@ -53,6 +61,8 @@ NumericVector mvtSampler(NumericVector y,
       }
     }
   }
+
+  if(verbose) Rcpp::Rcout<<"\n" ;
 
   return samples ;
 }

@@ -30,6 +30,7 @@ generate.regression.data <- function(n,sqrtSigma,numberNonzero,snr=2,ysig=1) {
 
 # Parameters ----------------
 n <- 400
+n <- 400
 p <- 400
 snrEta <- 0.5
 numberNonzero <- 4

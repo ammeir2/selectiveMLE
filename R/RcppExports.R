@@ -5,7 +5,7 @@ lassoSampler <- function(initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lamb
     invisible(.Call('selectiveMLE_lassoSampler', PACKAGE = 'selectiveMLE', initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lambda, ysigsq, zeroMean, sqrtZero, u0mat, n, p, nsamp, burnin, Xy, estimateMat, sampMat, delay, stepRate, stepCoef, gradientBound, assumeConvergence, naive, methodExact))
 }
 
-mvtSampler <- function(y, mu, selected, threshold, precision, nsamp, burnin, trim) {
-    .Call('selectiveMLE_mvtSampler', PACKAGE = 'selectiveMLE', y, mu, selected, threshold, precision, nsamp, burnin, trim)
+mvtSampler <- function(y, mu, selected, threshold, precision, nsamp, burnin, trim, verbose) {
+    .Call('selectiveMLE_mvtSampler', PACKAGE = 'selectiveMLE', y, mu, selected, threshold, precision, nsamp, burnin, trim, verbose)
 }
 

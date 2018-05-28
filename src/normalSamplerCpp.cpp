@@ -1,3 +1,4 @@
+#include <Rcpp.h>
 #include "mleHeader.h"
 using namespace Rcpp;
 
@@ -20,7 +21,7 @@ NumericVector mvtSampler(NumericVector y,
                          int nsamp, int burnin, int trim,
                          bool verbose) {
   int totalIter = burnin + (nsamp - 1) * trim ;
-  int frac = std::round(totalIter / 5) ;
+  int frac = round(totalIter / 5) ;
   int p = y.length() ;
   NumericMatrix samples(nsamp, p) ;
   NumericVector samp = clone(y) ;

@@ -33,8 +33,14 @@ path <- fit$solutionPath
 path <- path[, selected]
 path <- melt(path)
 names(path) <- c("iter", "param", "estimate")
-ggplot(path) + geom_line(aes(x = iter, y = estimate, col = factor(param))) +
-  geom_hline(yintercept = 0) + theme_bw()
+pathplot <- ggplot(path) + geom_line(aes(x = iter, y = estimate, col = factor(param))) +
+  geom_hline(yintercept = 0) + theme_bw() +
+  scale_color_discrete(guide = FALSE) + xlab("Iteration") +
+  ylab("Estimate")
+pathplot
+library(cowplot)
+save_plot(pathplot, file = "figures/mvnPath.pdf",
+          base_width = 5, base_height = 3)
 
 # Plotting Estimates and CIs ------------------------
 true <- mu[selected]

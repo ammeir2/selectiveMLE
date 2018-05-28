@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // lassoSampler
-void lassoSampler(const NumericVector initEst, const NumericVector initSamp, NumericMatrix oneCov, NumericMatrix XmX, NumericMatrix XmXinv, NumericVector condSigma, double lambda, double ysigsq, NumericVector zeroMean, NumericMatrix sqrtZero, NumericMatrix u0mat, int n, int p, int nsamp, int burnin, NumericVector Xy, NumericMatrix& estimateMat, NumericMatrix& sampMat, int delay, double stepRate, double stepCoef, double gradientBound, int assumeConvergence, NumericVector naive, bool methodExact);
-RcppExport SEXP selectiveMLE_lassoSampler(SEXP initEstSEXP, SEXP initSampSEXP, SEXP oneCovSEXP, SEXP XmXSEXP, SEXP XmXinvSEXP, SEXP condSigmaSEXP, SEXP lambdaSEXP, SEXP ysigsqSEXP, SEXP zeroMeanSEXP, SEXP sqrtZeroSEXP, SEXP u0matSEXP, SEXP nSEXP, SEXP pSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP XySEXP, SEXP estimateMatSEXP, SEXP sampMatSEXP, SEXP delaySEXP, SEXP stepRateSEXP, SEXP stepCoefSEXP, SEXP gradientBoundSEXP, SEXP assumeConvergenceSEXP, SEXP naiveSEXP, SEXP methodExactSEXP) {
+void lassoSampler(const NumericVector initEst, const NumericVector initSamp, NumericMatrix oneCov, NumericMatrix XmX, NumericMatrix XmXinv, NumericVector condSigma, double lambda, double ysigsq, NumericVector zeroMean, NumericMatrix sqrtZero, NumericMatrix u0mat, int n, int p, int nsamp, int burnin, NumericVector Xy, NumericMatrix& estimateMat, NumericMatrix& sampMat, int delay, double stepRate, double stepCoef, double gradientBound, int assumeConvergence, NumericVector naive, bool methodExact, bool verbose);
+RcppExport SEXP _selectiveMLE_lassoSampler(SEXP initEstSEXP, SEXP initSampSEXP, SEXP oneCovSEXP, SEXP XmXSEXP, SEXP XmXinvSEXP, SEXP condSigmaSEXP, SEXP lambdaSEXP, SEXP ysigsqSEXP, SEXP zeroMeanSEXP, SEXP sqrtZeroSEXP, SEXP u0matSEXP, SEXP nSEXP, SEXP pSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP XySEXP, SEXP estimateMatSEXP, SEXP sampMatSEXP, SEXP delaySEXP, SEXP stepRateSEXP, SEXP stepCoefSEXP, SEXP gradientBoundSEXP, SEXP assumeConvergenceSEXP, SEXP naiveSEXP, SEXP methodExactSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const NumericVector >::type initEst(initEstSEXP);
@@ -36,13 +36,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type assumeConvergence(assumeConvergenceSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type naive(naiveSEXP);
     Rcpp::traits::input_parameter< bool >::type methodExact(methodExactSEXP);
-    lassoSampler(initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lambda, ysigsq, zeroMean, sqrtZero, u0mat, n, p, nsamp, burnin, Xy, estimateMat, sampMat, delay, stepRate, stepCoef, gradientBound, assumeConvergence, naive, methodExact);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    lassoSampler(initEst, initSamp, oneCov, XmX, XmXinv, condSigma, lambda, ysigsq, zeroMean, sqrtZero, u0mat, n, p, nsamp, burnin, Xy, estimateMat, sampMat, delay, stepRate, stepCoef, gradientBound, assumeConvergence, naive, methodExact, verbose);
     return R_NilValue;
 END_RCPP
 }
 // mvtSampler
 NumericVector mvtSampler(NumericVector y, NumericVector mu, IntegerVector selected, NumericMatrix threshold, NumericMatrix precision, int nsamp, int burnin, int trim, bool verbose);
-RcppExport SEXP selectiveMLE_mvtSampler(SEXP ySEXP, SEXP muSEXP, SEXP selectedSEXP, SEXP thresholdSEXP, SEXP precisionSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP trimSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _selectiveMLE_mvtSampler(SEXP ySEXP, SEXP muSEXP, SEXP selectedSEXP, SEXP thresholdSEXP, SEXP precisionSEXP, SEXP nsampSEXP, SEXP burninSEXP, SEXP trimSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -58,4 +59,15 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(mvtSampler(y, mu, selected, threshold, precision, nsamp, burnin, trim, verbose));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_selectiveMLE_lassoSampler", (DL_FUNC) &_selectiveMLE_lassoSampler, 26},
+    {"_selectiveMLE_mvtSampler", (DL_FUNC) &_selectiveMLE_mvtSampler, 9},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_selectiveMLE(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }

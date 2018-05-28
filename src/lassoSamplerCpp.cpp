@@ -465,7 +465,7 @@ void   lassoSampler(const NumericVector initEst,
                     NumericMatrix &estimateMat, NumericMatrix &sampMat,
                     int delay, double stepRate, double stepCoef,
                     double gradientBound, int assumeConvergence,
-                    NumericVector naive, bool methodExact) {
+                    NumericVector naive, bool methodExact, bool verbose) {
   // Initializing Sampling order
   IntegerVector order = IntegerVector(initEst.length()) ;
   for(int i = 0; i < order.length() ; i++) order[i] = i ;
@@ -576,7 +576,7 @@ void   lassoSampler(const NumericVector initEst,
 
     // OPTIMIZATION ENDS
     int frac = floor(sampMat.nrow() / 20) ;
-    if((optimIter + 1) % frac == 0) {
+    if((optimIter + 1) % frac == 0 & verbose) {
       double percent = round((optimIter + 1.0) / (sampMat.nrow() + 1.0) * 100) ;
       Rcpp::Rcout<<percent<<"\% " ;
       for(int i = 0 ; i < samp.length() ; i ++) {
@@ -591,5 +591,7 @@ void   lassoSampler(const NumericVector initEst,
       }
     }
   }
-  Rcpp::Rcout<<"\n" ;
+  if(verbose) {
+    Rcpp::Rcout<<"\n" ;
+  }
 }

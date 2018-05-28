@@ -73,15 +73,30 @@ lassoysig <- sd((y - Xm %*% lassoBeta[lassoBeta != 0]))
 selectiveFit <- NULL
 selectiveysig <- lassoysig * sqrt(n / (n - s - 1))
 selectiveFit <- fixedLassoInf(X, y, alpha = 0.05,
-                              coef(lassoFit, s = "lambda.min")[-1],
+                              beta = coef(lassoFit, s = "lambda.min")[-1],
                               lambda = lassoFit$lambda.min * n,
                               sigma = selectiveysig)
 
 # Conditional MLE ----------------
-mle <- lassoMLE(y, X, lambda = "lambda.min",
-                 ysig = NULL, lassoFit = lassoFit,
-                 delay = 20, optimSteps = 1000,
-                 sampSteps = 3000, stepRate = 0.8, method = "selected")
+system.time(mle <- lassoMLE(y, X, lambda = "lambda.min",
+                            ysig = NULL, lassoFit = lassoFit,
+                            delay = 20, optimSteps = 1000,
+                            sampSteps = 3000, stepRate = 0.8,
+                            method = "selected",
+                            verbose = TRUE))
+
+system.time(mle <- lassoMLE(y, X, lambda = "lambda.min",
+                            lassoFit = lassoFit,
+                            method = "selected",
+                            verbose = TRUE))
+
+system.time(exact <- lassoMLE(y, X, lambda = "lambda.min",
+                            ysig = NULL, lassoFit = lassoFit,
+                            method = "exact",
+                            verbose = TRUE))
+
+mle$conditionalBeta[1:5]
+mle$wald_CI[1:5, ]
 
 conditional <- mle$conditionalBeta
 # Solution Path -------------------------

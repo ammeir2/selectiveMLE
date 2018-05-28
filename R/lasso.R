@@ -35,6 +35,8 @@
 #' @param method optimization method, "selected" is faster than "exact"
 #' but may not converge to the exact MLE. See description for details.
 #'
+#' @param verbose whether to report computation progress
+#'
 #' @details The routine computes the conditional MLE for models selected
 #' by the lasso as well as post-selection confidence intervals which are
 #' based on the approximate distribution of the conditional MLE. The routine
@@ -87,7 +89,8 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
                      optimSteps = 1000,
                      sampSteps = 2000,
                      stepCoef = 0.001, stepRate = 0.85,
-                     method = c("exact", "selected")) {
+                     method = c("exact", "selected"),
+                     verbose = TRUE) {
   assumeConvergence <- optimSteps
   iterations <- optimSteps + sampSteps
 
@@ -194,7 +197,7 @@ lassoMLE <- function(y, X, lambda = "lambda.min",
                estimateMat = estimateMat, sampMat = betaSample,
                delay = delay, stepRate = stepRate, stepCoef = stepCoef,
                gradientBound = 0.02, assumeConvergence = assumeConvergence,
-               naive = naiveBeta, methodExact = methodExact)
+               naive = naiveBeta, methodExact = methodExact, verbose = verbose)
 
   conditionalBeta <- estimateMat[nrow(estimateMat), ]
 
